@@ -10,7 +10,7 @@ export const handleServerNetworkError = (error: unknown, dispatch: Dispatch) => 
   } else if (error instanceof Error) {
     errorMessage = `Native error: ${error.message}`
   } else {
-    errorMessage = JSON.stringify(error)
+    errorMessage = JSON.stringify((error as any).message || 'Unknown error')
   }
 
   dispatch(setAppErrorAC({ error: errorMessage }))

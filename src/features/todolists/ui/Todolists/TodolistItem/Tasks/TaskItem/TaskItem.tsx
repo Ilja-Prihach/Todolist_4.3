@@ -8,21 +8,29 @@ import Checkbox from "@mui/material/Checkbox"
 import IconButton from "@mui/material/IconButton"
 import ListItem from "@mui/material/ListItem"
 import type { ChangeEvent } from "react"
+import { useState } from "react"
 import { getListItemSx } from "./TaskItem.styles"
 
 type Props = {
   task: DomainTask
   todolistId: string
+  disabled: boolean
 }
 
-export const TaskItem = ({ task, todolistId }: Props) => {
+export const TaskItem = ({ task, todolistId, disabled }: Props) => {
   const dispatch = useAppDispatch()
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const deleteTask = () => {
+    setIsDeleting(true)
     dispatch(deleteTaskTC({ todolistId, taskId: task.id }))
+      .catch(() => {
+        setIsDeleting(false)
+      })
   }
 
   const changeTaskStatus = (e: ChangeEvent<HTMLInputElement>) => {
+    if (isDeleting) return
     const newStatusValue = e.currentTarget.checked
     dispatch(
       updateTaskTC({
@@ -34,18 +42,20 @@ export const TaskItem = ({ task, todolistId }: Props) => {
   }
 
   const changeTaskTitle = (title: string) => {
+    if (isDeleting) return
     dispatch(updateTaskTC({ todolistId, taskId: task.id, domainModel: { title } }))
   }
 
   const isTaskCompleted = task.status === TaskStatus.Completed
+  const isDisabled = disabled || isDeleting
 
   return (
     <ListItem sx={getListItemSx(isTaskCompleted)}>
       <div>
-        <Checkbox checked={isTaskCompleted} onChange={changeTaskStatus} />
-        <EditableSpan value={task.title} onChange={changeTaskTitle} />
+        <Checkbox disabled={isDisabled} checked={isTaskCompleted} onChange={changeTaskStatus} />
+        <EditableSpan value={task.title} onChange={changeTaskTitle} disabled={isDisabled} />
       </div>
-      <IconButton onClick={deleteTask}>
+      <IconButton disabled={isDisabled} onClick={deleteTask}>
         <DeleteIcon />
       </IconButton>
     </ListItem>
